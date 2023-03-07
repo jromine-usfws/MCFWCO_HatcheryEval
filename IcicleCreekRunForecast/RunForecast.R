@@ -21,22 +21,27 @@ ipak <- function(pkg){
 
 #==== end functions ======
 
-libs <- c('dplyr', 'readr', 'tidyr', 'tibble', 'XLConnect', 'lubridate')
+libs <- c('dplyr', 'readr', 'tidyr', 'tibble', 'lubridate','curl', 'stringi')
 ipak(libs)
+ipak('rJava')
+#sooo there is a problem with the java; java is not installed on gov machines
 
-# Load libraries and import PTAGIS dataset
-library(dplyr)
-library(readr)
-library(tidyr)
-library(tibble)
-library(XLConnect)
-library(lubridate)
 #Import PTAGIS Dataset; Data was queried on PTAGIS for LNFH tagged fish
 # migrating up the mainstem, including overshoots at TUF and RRF.
 # The raw data is a ftp connection updated daily.
 
 
-dataURL <- "ftp://ftp.ptagis.org/MicroStrategyExport/Bednarekuba/LNFH_PIT_IS.csv"
+#dataURL <- "https://api.ptagis.org/reporting/reports/Bednarekuba/file/LNFH_PIT_IS.csv"
+LNFH_Returns <- httr::GET("https://api.ptagis.org/reporting/reports/Bednarekuba/file/LNFH_PIT_IS.csv")
+
+#Connect Web API PTAGIS
+res<-GET("https://api.ptagis.org/reporting/reports/Flora1792/file/Icicle_Creek_Forecast.csv",accept('text/plain'))#gets the API connection
+res #shows you what the details of the file are
+stringi::stri_enc_detect(httr::content(dat, "raw"))#tells you what content is encoded as#Read in PTAGIS returns
+LNFH_Returns <- httr::content(LNFH_Returns, encoding = "UTF-16LE")#gets you the return data in table format
+head(LNFH_Returns)
+dat<-data.frame(LNFH_Returns)
+
 LNFH_Returns <- read.csv(dataURL, 
                          fileEncoding = "UTF-16LE",
                          stringsAsFactors = FALSE)
@@ -112,19 +117,4 @@ ICLefficiency <- 0.87
 #Find Average and correct it by factor of ICLefficiency
 conversionRate <- round(mean(ConversionTbl$Conversion), 3)
 
-Run Script
-Footer
-© 2023 GitHub, Inc.
-Footer navigation
-Terms
-Privacy
-Security
-Status
-Docs
-Contact GitHub
-Pricing
-API
-Training
-Blog
-About
-You signed in with another tab or window. Reload to refresh your session.
+#Run Script
