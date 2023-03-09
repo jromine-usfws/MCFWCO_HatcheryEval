@@ -159,10 +159,14 @@ if (format(Sys.Date(), "%j") < format(as.Date(dart[2,3], format="%d-%b"), "%j"))
 #good to here
 ```
 
+`r if(sum(current_year_BON_counts$"Expanded Migration Size") * conversion_rate + 0.0001 /(0.001 + percent_run)  < 1 ){
+  "No PIT tags have been detected yet. Hopefully, fish are still on their way!"
+} else {
+  paste("Forecast to Icicle Creek:", round(sum(current_year_BON_counts$"Expanded Migration Size") * conversion_rate / percent_run))
+}`
+
 
 ```{r echo=FALSE}
-#library(knitr)
-#library(kableExtra)
 
 mytable <- knitr::kable(current_year_BON_counts, "html", align = "c", 
 caption = paste0("Table 1. ", format(Sys.Date(),'%Y'), " LNFH-origin spring Chinook Salmon migration characterists and migration size estimate."))
@@ -229,7 +233,7 @@ ggplot(predicted, aes(x = MigrationYear))+
   ggtitle("Comparison of Run Forecast and Measured Returns")+
   ylab("Number of Spring Chinook")+
   ylim(0, NA)+
-  theme_bw()
+  theme_bw()+theme(legend.title=element_blank())
   
 ```
 
