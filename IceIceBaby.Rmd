@@ -222,7 +222,7 @@ kable_styling(mytable3, bootstrap_options = c("striped", "hover", "condensed"), 
 
 Our forecast method typically under predicts actual returns. On average the model under predicts by 21.8%. This may be explained by research showing that PIT-tagged fish have lower smolt to adult return rates (Knudsen 2009; McDonald et al. 2003; Prentice 1994). PIT tag loss has been documented at other hatcheries within the Leavenworth Complex as well.
 
-```{r eval=FALSE, include=FALSE}
+```{r echo=FALSE}
 ggplot(predicted, aes(x = MigrationYear))+
   geom_line(aes(y = Forecast, color = "Forecast")) +
   geom_line(aes(y = Run, color = "Run"))+
