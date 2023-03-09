@@ -1,11 +1,10 @@
 ---
-title: "IceIceBaby"
-author: "jromine-usfws"
+title: "Icicle Creek Spring Chinook Salmon Forecast"
+author: "Jakub Bednarek, Greg Fraser, Flora Gibbs, Jason Romine"
 date: "`r Sys.Date()`"
 output: html_document
 runtime: shiny
 ---
-
 
 
 *This forecast is generated from publicly available data on [PTAGIS.org](https://www.ptagis.org), [Columbia Basin Research DART](http://www.cbr.washington.edu/dart/query/pitadult_hrt), and from [Mid-Columbia Fish & Wildlife Conservation Office](https://www.fws.gov/office/mid-columbia-fish-and-wildlife-conservation)*
