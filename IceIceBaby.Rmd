@@ -29,8 +29,8 @@ library(here)
 library(lubridate)
 library(stringr)
 library(ggplot2)
-#library(knitr)
-#library(kableExtra)
+library(knitr)
+library(kableExtra)
 #libs=c('httr', 'readr', 'tidyverse','tibble', 'here', 'lubridate', 'stringr', 'ggplot2', 'knitr', 'kableExtra')
 #ipak(libs)
 
@@ -162,7 +162,7 @@ if (format(Sys.Date(), "%j") < format(as.Date(dart[2,3], format="%d-%b"), "%j"))
 
 ```{r echo=FALSE}
 #library(knitr)
-library(kableExtra)
+#library(kableExtra)
 
 mytable <- knitr::kable(current_year_BON_counts, "html", align = "c", 
 caption = paste0("Table 1. ", format(Sys.Date(),'%Y'), " LNFH-origin spring Chinook Salmon migration characterists and migration size estimate."))
@@ -183,5 +183,74 @@ mytable2 <- ConversionTbl %>%
 
 kable_styling(mytable2, bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "left")
 ```
+
+To gauge the strength of this model, we compared PIT tag expansions at Bonneville Dam to actual returns to Icicle Creek (Table 3). Icicle Creek returns are measured by hand counted returns to the hatchery, spawning ground surveys, and creel census of sport and tribal fisheries. These sources are used to reconstruct the total return to Icicle Creek.
+
+
+```{r echo=FALSE}
+
+#Read in previous run reconstruction data
+icicle_recon<-read.csv("Ici_Run_Recon.csv",header = TRUE)
+
+#Clean up data
+ici_run <- icicle_recon %>%
+  select(Year, Run) %>%
+  filter(!is.na(Year)) %>%
+  rename(MigrationYear = Year)
+ici_run$Run<- as.integer( gsub(",","",ici_run$Run, ici_run$Run))
+
+#Make sure runs are in whole fish
+ici_run$Run <- round(ici_run$Run, 0)
+
+predicted <- adult_migrants %>% 
+  count(MigYear, BroodYear,SiteName) %>% 
+  spread(SiteName, n, fill=0) %>% 
+  arrange(MigYear) %>% 
+  filter(MigYear > 2011 & MigYear < year(Sys.Date())) %>%
+  inner_join(pit_ratios, by = "BroodYear") %>%
+  mutate(Forecast = round(BON*Ratio*conversion_rate, 0)) %>%
+  group_by(MigYear) %>%
+  summarize(Forecast = sum(Forecast)) %>%
+  rename(MigrationYear = MigYear) %>%
+  left_join(ici_run, by = "MigrationYear") %>%
+  mutate(Difference = Forecast - Run, "Percent Diff" = round((100 * (Run-Forecast) / Run), 0) )
+
+mytable3 <- knitr::kable(predicted, "html",caption = "Table 3. Comparison of PIT expansion method and actual returns to Icicle Creek.")
+
+kable_styling(mytable3, bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "left")
+```
+
+Our forecast method typically under predicts actual returns. On average the model under predicts by 21.8%. This may be explained by research showing that PIT-tagged fish have lower smolt to adult return rates (Knudsen 2009; McDonald et al. 2003; Prentice 1994). PIT tag loss has been documented at other hatcheries within the Leavenworth Complex as well.
+
+```{r eval=FALSE, include=FALSE}
+ggplot(predicted, aes(x = MigrationYear))+
+  geom_line(aes(y = Forecast, color = "Forecast")) +
+  geom_line(aes(y = Run, color = "Run"))+
+  ggtitle("Comparison of Run Forecast and Measured Returns")+
+  ylab("Number of Spring Chinook")+
+  ylim(0, NA)+
+  theme_bw()
+  
+```
+
+
+### References
+    Beer, W.N., 2007. Run timing of adult Chinook Salmon passing Bonneville 
+      Dam on the Columbia River, Seattle: Columbia Basin Research, 
+      White Paper, University of Washington.
+    
+    Knudsen C.M., Johnston M.V., Schroder S.L., Bosch W.J., Fast D.E., 
+      Strom C.R., 2011. Effects of Passive Integrated Transponder tags on 
+      smolt-to-adult recruit survival, growth, and behavior of hatchery 
+      spring Chinook Salmon. North Am. Journal of Fisheries Management 29:658-669, 2009
+      
+    McDonald, T.L., S.C. Amstrup, and B.F.J. Manly. 2003.Tag loss can bias
+      Jolly-Seber capture-recapture esti-mates. Wildlife Society Bulletin 31:814-822.
+    
+    Prentice, E.F., D.J. Maynard, S.L. Downing, D.A. Frost,M. S. Kellett, 
+      D. A. Bruland, P. Sparks-McConkey, F.W. Waknitz, R. N. Iwamoto, K. McIntyre, 
+      and N.Paasch. 1994. Comparison of long-term effects of PIT tags and CW tags 
+      on coho salmon (Oncorhynchus kisutch).Pages 123-137 in A study to determine
+      the biological feasibility of a new fish tagging system.
 
 
