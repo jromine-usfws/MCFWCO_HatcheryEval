@@ -53,18 +53,18 @@ pivot <- adult_migrants %>%
   spread(SiteName, n, fill=0) %>% 
   arrange(MigYear) %>% 
   filter(MigYear > 2011 & MigYear < year(Sys.Date())) %>%
-  mutate(GrandTotal=BON+ICL) %>%
-  mutate(ConversionRate = (ICL / 0.87) / BON) %>%
-  rename(Year = MigYear)
+  mutate(GrandTotal = BON + ICL) %>%
+  mutate(ConversionRate = (ICL / 0.87) / BON) #%>%
+  #rename(Year = MigYear)
 
 #Icicle array efficiency, previously calculated
 ICLefficiency <- 0.87
 
 #Calculate conversion rate for BON, MCN, and ICL for years past 2011(i.e., how many fish make it past each array)
 ConversionTbl <- pivot %>%
-  select(Year,BON, MCN, ICL) %>%
+  select(MigYear,BON, MCN, ICL) %>%
   mutate("Conversion" = round( ( (ICL / ICLefficiency) / BON),3)) %>%
-  filter( Year > 2011)
+  filter( MigYear > 2011)
 
 #Find average conversion rate over the years, round to 3 dec places
 conversion_rate <- round(mean(ConversionTbl$Conversion), 3)

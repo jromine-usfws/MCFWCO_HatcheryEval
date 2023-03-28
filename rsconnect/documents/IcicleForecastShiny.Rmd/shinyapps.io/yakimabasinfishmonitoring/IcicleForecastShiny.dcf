@@ -1,0 +1,13 @@
+name: IcicleForecastShiny
+title: IcicleForecastShiny
+username:
+account: yakimabasinfishmonitoring
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8520004
+bundleId: 6934108
+url: https://yakimabasinfishmonitoring.shinyapps.io/IcicleForecastShiny/
+when: 1678329700.45481
+lastSyncTime: 1678329700.45481
+asMultiple: FALSE
+asStatic: FALSE

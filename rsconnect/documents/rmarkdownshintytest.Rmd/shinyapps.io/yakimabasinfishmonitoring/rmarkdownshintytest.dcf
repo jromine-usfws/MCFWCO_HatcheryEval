@@ -1,0 +1,13 @@
+name: rmarkdownshintytest
+title: rmarkdownshintytest
+username:
+account: yakimabasinfishmonitoring
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 8518473
+bundleId: 6933439
+url: https://yakimabasinfishmonitoring.shinyapps.io/rmarkdownshintytest/
+when: 1678315570.31779
+lastSyncTime: 1678315570.3178
+asMultiple: FALSE
+asStatic: FALSE
