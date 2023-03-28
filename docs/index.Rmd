@@ -10,7 +10,7 @@ Passive integrated transponder (PIT) tags are used throughout the Columbia River
 
 ```{r setup, include=FALSE, warning=FALSE}
 
-#functions
+#= functions =
 # ipak <- function(pkg){
 #   new.pkg <- pkg[!(pkg %in% installed.packages()[, "Package"])]
 #   if (length(new.pkg))
