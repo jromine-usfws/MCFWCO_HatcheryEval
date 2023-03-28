@@ -4,7 +4,6 @@ author: "jromine-USFWS"
 date: "`r Sys.Date()`"
 output: html_document
 ---
-
 *This forecast is generated from publicly available data on [PTAGIS.org](https://www.ptagis.org), [Columbia Basin Research DART](http://www.cbr.washington.edu/dart/query/pitadult_hrt), and from [Mid-Columbia Fish & Wildlife Conservation Office](https://www.fws.gov/office/mid-columbia-fish-and-wildlife-conservation)*
 
 Passive integrated transponder (PIT) tags are used throughout the Columbia River basin to track migratory fish behavior. PIT tags are used to monitor post-release performance metrics including run timing, survival, and forecasting salmon returns. Based on tagging rates (Table 1) reported by Leavenworth National Fish Hatchery (LNFH) we can expand the PIT tag count at Bonneville Dam to forecast returns to Icicle Creek up to four weeks in advance of their arrival. This advanced notice is used to inform harvest decisions and broodstock needs for LNFH. The forecast follows the model $N = (B * C) / P$, where $B$ is the PIT count at Bonneville Dam $C$ is the survival rate between Bonneville Dam and Icicle Creek mouth (conversion rate), and $P$ is the proportion of run completed based on average run timing characteristics (Columbia Basin DART, 2018). The conversion rate is estimated using PIT tag interrogation data at the antenna array at lower Icicle Creek (ICL) and Bonneville Dam (BON). 
@@ -102,7 +101,7 @@ pit_ratios$RelNumber <- as.integer( gsub(",", "", pit_ratios$RelNumber))
 pit_ratios$NumberTagged <- as.integer( gsub(",","", pit_ratios$NumberTagged))
 ```
 
-```{r echo=FALSE, warning=FALSE}
+```{r eval=FALSE, warning=FALSE, include=FALSE}
 
 #Get current fish counts over BON
 current_BONcounts <- adult_migrants %>%
@@ -155,103 +154,3 @@ if (format(Sys.Date(), "%j") < format(as.Date(dart[2,3], format="%d-%b"), "%j"))
 
 #good to here
 ```
-
-`r if(sum(current_year_BON_counts$"Expanded Migration Size") * conversion_rate + 0.0001 /(0.001 + percent_run)  < 1 ){
-  "No PIT tags have been detected yet. Hopefully, fish are still on their way!"
-} else {
-  paste("Forecast to Icicle Creek:", round(sum(current_year_BON_counts$"Expanded Migration Size") * conversion_rate / percent_run))
-}`
-
-
-```{r echo=FALSE}
-
-mytable <- knitr::kable(current_year_BON_counts, "html", align = "c", 
-caption = paste0("Table 1. ", format(Sys.Date(),'%Y'), " LNFH-origin spring Chinook Salmon migration characterists and migration size estimate."))
-kable_styling(mytable, bootstrap_options = c("striped", "hover", "condensed"))#, full_width = F, position = "left")
-
-```
-
-Based on average run timing characteristics the Icicle Creek spring Chinook run is `r paste(100 * percent_run,"%", sep = "")` complete (Columbia Basin Research DART 2018). However, the average run timing may not closely represent this year's run. Beer (2007) found significant correlation between in-stream conditions (temperature and flow) and run timing. Conditions in 2018 may closely follow 2017 when slightly above average snowpack resulted in prolonged high flows and a later run. 
-
-The following data shows the methods used to develop this forecast. Conversion rate (C) represents the average survival of adults between Bonneville Dam and ICL (Table 2). The ICL antenna detected 87% of the PIT-tagged adult Chinook Salmon migrating into Icicle Creek which was included in the conversion rate. ICL was installed in 2011 and available data includes 2012 to present. The average conversion rate for these years was `r round(conversion_rate, 2)`.
-
-
-```{r echo=FALSE}
-#site_counts %>%
-mytable2 <- ConversionTbl %>%
-  select(MigYear, BON, ICL, Conversion) %>%
-  knitr::kable("html",col.names = c("Migration Year", "BON", "ICL", "Conversion Rate"), align = c("c", "c", "l"), caption = "Table 2. PIT tag counts at Bonneville Dam (BON), Icicle Creek Lower Array (ICL) and resulting conversion rates. (PTAGIS, 2023)")
-
-kable_styling(mytable2, bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "left")
-```
-
-To gauge the strength of this model, we compared PIT tag expansions at Bonneville Dam to actual returns to Icicle Creek (Table 3). Icicle Creek returns are measured by hand counted returns to the hatchery, spawning ground surveys, and creel census of sport and tribal fisheries. These sources are used to reconstruct the total return to Icicle Creek.
-
-
-```{r echo=FALSE}
-
-#Read in previous run reconstruction data
-icicle_recon<-read.csv("Ici_Run_Recon.csv",header = TRUE)
-
-#Clean up data
-ici_run <- icicle_recon %>%
-  select(Year, Run) %>%
-  filter(!is.na(Year)) %>%
-  rename(MigrationYear = Year)
-ici_run$Run<- as.integer( gsub(",","",ici_run$Run, ici_run$Run))
-
-#Make sure runs are in whole fish
-ici_run$Run <- round(ici_run$Run, 0)
-
-predicted <- adult_migrants %>% 
-  count(MigYear, BroodYear,SiteName) %>% 
-  spread(SiteName, n, fill=0) %>% 
-  arrange(MigYear) %>% 
-  filter(MigYear > 2011 & MigYear < year(Sys.Date())) %>%
-  inner_join(pit_ratios, by = "BroodYear") %>%
-  mutate(Forecast = round(BON*Ratio*conversion_rate, 0)) %>%
-  group_by(MigYear) %>%
-  summarize(Forecast = sum(Forecast)) %>%
-  rename(MigrationYear = MigYear) %>%
-  left_join(ici_run, by = "MigrationYear") %>%
-  mutate(Difference = Forecast - Run, "Percent Diff" = round((100 * (Run-Forecast) / Run), 0) )
-
-mytable3 <- knitr::kable(predicted, "html",caption = "Table 3. Comparison of PIT expansion method and actual returns to Icicle Creek.")
-
-kable_styling(mytable3, bootstrap_options = c("striped", "hover", "condensed"), full_width = F, position = "left")
-```
-
-Our forecast method typically under predicts actual returns. On average the model under predicts by 21.8%. This may be explained by research showing that PIT-tagged fish have lower smolt to adult return rates (Knudsen 2009; McDonald et al. 2003; Prentice 1994). PIT tag loss has been documented at other hatcheries within the Leavenworth Complex as well.
-
-```{r echo=FALSE}
-ggplot(predicted, aes(x = MigrationYear))+
-  geom_line(aes(y = Forecast, color = "Forecast")) +
-  geom_line(aes(y = Run, color = "Run"))+
-  ggtitle("Comparison of Run Forecast and Measured Returns")+
-  ylab("Number of Spring Chinook")+
-  ylim(0, NA)+
-  theme_bw()+theme(legend.title=element_blank())
-  
-```
-
-
-### References
-    Beer, W.N., 2007. Run timing of adult Chinook Salmon passing Bonneville 
-      Dam on the Columbia River, Seattle: Columbia Basin Research, 
-      White Paper, University of Washington.
-    
-    Knudsen C.M., Johnston M.V., Schroder S.L., Bosch W.J., Fast D.E., 
-      Strom C.R., 2011. Effects of Passive Integrated Transponder tags on 
-      smolt-to-adult recruit survival, growth, and behavior of hatchery 
-      spring Chinook Salmon. North Am. Journal of Fisheries Management 29:658-669, 2009
-      
-    McDonald, T.L., S.C. Amstrup, and B.F.J. Manly. 2003.Tag loss can bias
-      Jolly-Seber capture-recapture esti-mates. Wildlife Society Bulletin 31:814-822.
-    
-    Prentice, E.F., D.J. Maynard, S.L. Downing, D.A. Frost,M. S. Kellett, 
-      D. A. Bruland, P. Sparks-McConkey, F.W. Waknitz, R. N. Iwamoto, K. McIntyre, 
-      and N.Paasch. 1994. Comparison of long-term effects of PIT tags and CW tags 
-      on coho salmon (Oncorhynchus kisutch).Pages 123-137 in A study to determine
-      the biological feasibility of a new fish tagging system.
-
-
